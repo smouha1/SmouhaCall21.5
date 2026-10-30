@@ -7,7 +7,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
-import android.provider.Settings
 import android.telecom.TelecomManager
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -76,21 +75,6 @@ object CallExecutor {
     const val OPEN_CHANNEL_ID = "smouha_open_wa"
     private const val OPEN_NOTIF_ID = 8766
 
-    /** Android 10+ allows background activity starts when overlay permission is granted or app is visible. */
-    fun canStartActivityFromBackground(ctx: Context): Boolean {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return true
-        if (BridgeState.uiVisible) return true
-        return try {
-            Settings.canDrawOverlays(ctx)
-        } catch (_: Exception) {
-            false
-        }
-    }
-
-    /**
-     * Prioritizes native whatsapp://send?phone= intents targeted directly at WhatsApp / WA Business
-     * so the chat screen opens immediately without opening a browser tab first.
-     */
     private fun whatsappIntents(digits: String): List<Pair<Intent, String>> {
         val flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         val list = mutableListOf<Pair<Intent, String>>()
@@ -119,18 +103,20 @@ object CallExecutor {
         val appCtx = ctx.applicationContext
         val attempts = whatsappIntents(digits)
 
-        if (canStartActivityFromBackground(appCtx)) {
-            var lastErr = "whatsapp_failed"
-            for ((intent, tag) in attempts) {
-                try {
-                    if (intent.resolveActivity(appCtx.packageManager) == null) continue
-                    appCtx.startActivity(intent)
+        var lastErr = "whatsapp_failed"
+        for ((intent, tag) in attempts) {
+            try {
+                if (intent.resolveActivity(appCtx.packageManager) == null) continue
+                appCtx.startActivity(intent)
+                if (BridgeState.uiVisible || Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
                     return true to tag
-                } catch (e: Exception) {
-                    lastErr = e.message ?: tag
                 }
+                // Also post heads-up tap notification in case Android 10+ background restriction suppressed launch
+                notifyOpenWhatsApp(appCtx, attempts)
+                return true to tag
+            } catch (e: Exception) {
+                lastErr = e.message ?: tag
             }
-            return false to lastErr
         }
 
         return notifyOpenWhatsApp(appCtx, attempts)
@@ -141,7 +127,7 @@ object CallExecutor {
         attempts: List<Pair<Intent, String>>
     ): Pair<Boolean, String> {
         val nm = NotificationManagerCompat.from(appCtx)
-        if (!nm.areNotificationsEnabled()) return false to "need_overlay_permission"
+        if (!nm.areNotificationsEnabled()) return false to "notifications_disabled"
 
         val chosen = attempts.firstOrNull { (intent, _) ->
             intent.resolveActivity(appCtx.packageManager) != null
@@ -159,13 +145,10 @@ object CallExecutor {
             .setCategory(NotificationCompat.CATEGORY_MESSAGE)
             .setAutoCancel(true)
             .setContentIntent(pi)
-            .setFullScreenIntent(pi, true)
             .build()
         return try {
             nm.notify(OPEN_NOTIF_ID, n)
             true to "notification_tap_to_open"
-        } catch (e: SecurityException) {
-            false to "need_overlay_permission"
         } catch (e: Exception) {
             false to (e.message ?: "notify_failed")
         }

@@ -6,14 +6,7 @@ import org.json.JSONObject
 import java.io.IOException
 
 /**
- * LAN HTTP API for Smouha Papper extension (v1.5.0).
- *
- * GET  /v1/ping
- * POST /v1/pair      { "secret": "..." }
- * POST /v1/call      { "phone": "01..." }  Authorization: Bearer <token>
- * POST /v1/whatsapp  { "phone": "01..." }  Authorization: Bearer <token>
- * GET  /v1/info      Includes 1-Tap Zero-IP Fast Pair discovery state!
- * GET  /v1/activity
+ * LAN HTTP API for Smouha Papper extension (v1.5.2).
  */
 class BridgeHttpServer(
     private val appContext: Context,
@@ -50,16 +43,18 @@ class BridgeHttpServer(
                         return json(Response.Status.UNAUTHORIZED, err("unauthorized"), cors)
                     }
                     val counts = ActivityLog.todayCounts(appContext)
+                    val ip = NetworkUtils.localIpv4() ?: ""
                     json(
                         Response.Status.OK,
                         JSONObject()
                             .put("ok", true)
-                            .put("version", "1.5.0")
+                            .put("version", "1.5.2")
                             .put("deviceId", prefs.deviceId)
                             .put("deviceName", prefs.deviceName)
                             .put("brand", Prefs.BRAND_TAG)
                             .put("port", Prefs.PORT)
-                            .put("ip", NetworkUtils.localIpv4() ?: "")
+                            .put("ip", ip)
+                            .put("quickCode", NetworkUtils.quickCode(ip) ?: "")
                             .put("callsToday", counts.calls)
                             .put("waToday", counts.whatsapp)
                             .put("ts", System.currentTimeMillis()),
@@ -81,6 +76,7 @@ class BridgeHttpServer(
                     if (name != null) prefs.deviceName = name
                     ActivityLog.add(appContext, "pair", prefs.deviceName, true, "Paired with PC extension")
                     BridgeState.notifyUi()
+                    val ip = NetworkUtils.localIpv4() ?: ""
                     json(
                         Response.Status.OK,
                         JSONObject()
@@ -90,7 +86,8 @@ class BridgeHttpServer(
                             .put("deviceName", prefs.deviceName)
                             .put("brand", Prefs.BRAND_TAG)
                             .put("port", Prefs.PORT)
-                            .put("ip", NetworkUtils.localIpv4() ?: ""),
+                            .put("ip", ip)
+                            .put("quickCode", NetworkUtils.quickCode(ip) ?: ""),
                         cors
                     )
                 }
@@ -153,10 +150,11 @@ class BridgeHttpServer(
                     val windowOpen = pairing.hostPairWindowOpen()
                     val remSec = (pairing.hostPairRemainingMs() / 1000L).toInt()
                     val counts = ActivityLog.todayCounts(appContext)
+                    val ip = NetworkUtils.localIpv4() ?: ""
                     val infoObj = JSONObject()
                         .put("ok", true)
                         .put("app", "SmouhaCall")
-                        .put("version", "1.5.0")
+                        .put("version", "1.5.2")
                         .put("deviceId", prefs.deviceId)
                         .put("deviceName", prefs.deviceName)
                         .put("brand", Prefs.BRAND_TAG)
@@ -167,7 +165,8 @@ class BridgeHttpServer(
                         .put("callsToday", counts.calls)
                         .put("waToday", counts.whatsapp)
                         .put("port", Prefs.PORT)
-                        .put("ip", NetworkUtils.localIpv4() ?: "")
+                        .put("ip", ip)
+                        .put("quickCode", NetworkUtils.quickCode(ip) ?: "")
                         .put("ts", System.currentTimeMillis())
                     if (windowOpen) {
                         infoObj.put("pairOfferSecret", pairing.currentOffer().secret)

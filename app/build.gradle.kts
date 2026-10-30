@@ -11,22 +11,26 @@ android {
         applicationId = "com.smouha.call"
         minSdk = 21
         targetSdk = 34
-        versionCode = 9
-        versionName = "1.5.0"
+        versionCode = 10
+        versionName = "1.5.2"
     }
 
     signingConfigs {
         create("release") {
-            storeFile = file("/tmp/smouha-keys/debug.keystore")
-            storePassword = "android"
-            keyAlias = "androiddebugkey"
-            keyPassword = "android"
+            storeFile = file("/tmp/smouha-keys/smouha-release.jks")
+            storePassword = System.getenv("SMOUHA_KEYSTORE_PASS") ?: "SmouhaOps2026#Key"
+            keyAlias = System.getenv("SMOUHA_KEY_ALIAS") ?: "smouha_release_key"
+            keyPassword = System.getenv("SMOUHA_KEY_PASS") ?: "SmouhaOps2026#Key"
+            enableV1Signing = true
+            enableV2Signing = true
+            enableV3Signing = true
         }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
+            isShrinkResources = false
             signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

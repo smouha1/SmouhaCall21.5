@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Handler
@@ -38,9 +39,17 @@ class CallBridgeService : Service() {
         return START_STICKY
     }
 
+    private fun promoteForeground(notif: Notification) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(NOTIF_ID, notif, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+        } else {
+            startForeground(NOTIF_ID, notif)
+        }
+    }
+
     private fun startBridge() {
         if (server != null) {
-            startForeground(NOTIF_ID, buildNotification())
+            promoteForeground(buildNotification())
             BridgeState.notifyUi()
             return
         }
@@ -49,7 +58,7 @@ class CallBridgeService : Service() {
             s.start()
             server = s
             BridgeState.running = true
-            startForeground(NOTIF_ID, buildNotification())
+            promoteForeground(buildNotification())
             acquireWifiLock()
             BridgeState.notifyUi()
         } catch (e: Exception) {
@@ -129,41 +138,32 @@ class CallBridgeService : Service() {
     }
 }
 
-/**
- * Thread-safe Singleton state shared between MainActivity, CallBridgeService, and BridgeHttpServer.
- */
 object BridgeState {
     @Volatile var running: Boolean = false
-    @Volatile private var prefsInstance: Prefs? = null
-    @Volatile private var pairingInstance: PairingManager? = null
     @Volatile var uiVisible: Boolean = false
     @Volatile var uiListener: (() -> Unit)? = null
+
+    @Volatile private var prefsInstance: Prefs? = null
+    @Volatile private var pairingInstance: PairingManager? = null
     private val mainHandler = Handler(Looper.getMainLooper())
 
-    @Synchronized
     fun getPrefs(ctx: Context): Prefs {
-        var p = prefsInstance
-        if (p == null) {
-            p = Prefs(ctx.applicationContext)
-            prefsInstance = p
+        return prefsInstance ?: synchronized(this) {
+            prefsInstance ?: Prefs(ctx.applicationContext).also { prefsInstance = it }
         }
-        return p
     }
 
-    @Synchronized
     fun getPairing(ctx: Context): PairingManager {
-        var pm = pairingInstance
-        if (pm == null) {
-            pm = PairingManager(getPrefs(ctx))
-            pairingInstance = pm
+        return pairingInstance ?: synchronized(this) {
+            pairingInstance ?: PairingManager(getPrefs(ctx)).also { pairingInstance = it }
         }
-        return pm
     }
 
     fun notifyUi() {
+        val listener = uiListener ?: return
         mainHandler.post {
             try {
-                uiListener?.invoke()
+                listener.invoke()
             } catch (_: Exception) {
             }
         }

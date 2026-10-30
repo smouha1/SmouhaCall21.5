@@ -7,12 +7,10 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Color
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.provider.Settings
 import android.view.Gravity
 import android.view.View
 import android.widget.LinearLayout
@@ -152,23 +150,7 @@ class MainActivity : AppCompatActivity() {
         binding.switchAutoStart.setOnCheckedChangeListener { _, checked ->
             prefs.autoStart = checked
         }
-        binding.btnOverlay.setOnClickListener {
-            try {
-                startActivity(
-                    Intent(
-                        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                        Uri.parse("package:$packageName")
-                    )
-                )
-            } catch (_: Exception) {
-                startActivity(
-                    Intent(
-                        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                        Uri.parse("package:$packageName")
-                    )
-                )
-            }
-        }
+        binding.btnOverlay.visibility = View.GONE
         binding.btnBatteryOpt.setOnClickListener {
             BatteryHelper.openOptimizationSettings(this)
             binding.root.postDelayed({ renderSettings() }, 800)
@@ -216,16 +198,18 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateFastPairBadge() {
         val open = pairing.hostPairWindowOpen()
+        val qc = NetworkUtils.quickCode() ?: "—"
         if (open) {
             val remSec = (pairing.hostPairRemainingMs() / 1000L).toInt()
             binding.pairWindowBadge.visibility = View.VISIBLE
             binding.pairWindowBadge.text = "⚡ AUTO-PAIR · ${remSec}s"
-            binding.pairHint.text = getString(R.string.accept_pc_pair_hint)
+            binding.pairHint.text = getString(R.string.accept_pc_pair_hint, qc)
         } else {
             binding.pairWindowBadge.visibility = View.GONE
             val paired = prefs.hasPairedSession()
             binding.pairHint.text = getString(
-                if (paired) R.string.pair_connected_hint else R.string.pair_hint
+                if (paired) R.string.pair_connected_hint else R.string.pair_hint,
+                qc
             )
         }
     }
@@ -296,13 +280,14 @@ class MainActivity : AppCompatActivity() {
 
     private fun refreshUi() {
         val ip = NetworkUtils.localIpv4()
+        val qc = NetworkUtils.quickCode(ip)
         val running = BridgeState.running
         val sessionsCount = prefs.sessionTokens().size
         val counts = ActivityLog.todayCounts(this)
 
         binding.homeDeviceName.text = prefs.deviceName
         binding.homeSubtitle.text = if (running) {
-            getString(R.string.status_running, ip ?: "—", Prefs.PORT)
+            getString(R.string.status_running, ip ?: "—", Prefs.PORT) + (if (qc != null) " · Code $qc" else "")
         } else {
             getString(R.string.status_stopped)
         }
@@ -314,7 +299,7 @@ class MainActivity : AppCompatActivity() {
         binding.kpiBridgeSub.text = "$sessionsCount PC${if (sessionsCount == 1) "" else "s"} paired"
 
         binding.kpiNetwork.text = ip ?: "No Wi‑Fi"
-        binding.kpiPortSub.text = "Port ${Prefs.PORT} · Auto-IP"
+        binding.kpiPortSub.text = if (qc != null) "Quick Code: $qc" else "Port ${Prefs.PORT}"
 
         binding.kpiTodayTotal.text = counts.total.toString()
         binding.kpiTodaySub.text = "${counts.calls} Call · ${counts.whatsapp} WA"
@@ -338,10 +323,7 @@ class MainActivity : AppCompatActivity() {
             binding.permReadyLabel.visibility = View.GONE
         }
 
-        val overlayOk = Build.VERSION.SDK_INT < 23 || Settings.canDrawOverlays(this)
-        binding.btnOverlay.text =
-            getString(if (overlayOk) R.string.overlay_ok else R.string.grant_overlay)
-        binding.btnOverlay.visibility = if (overlayOk) View.GONE else View.VISIBLE
+        binding.btnOverlay.visibility = View.GONE
 
         val last = ActivityLog.list(this).firstOrNull()
         if (last != null) {
@@ -430,7 +412,7 @@ class MainActivity : AppCompatActivity() {
         val payload = pairing.buildPayloadJson(ip)
         binding.payloadText.text = payload
         binding.brandAlways.text = Prefs.BRAND_TAG
-        binding.brandTag.text = "${Prefs.BRAND_TAG} · v1.5.0"
+        binding.brandTag.text = "${Prefs.BRAND_TAG} · v1.5.2"
 
         updateFastPairBadge()
 
@@ -479,7 +461,7 @@ class MainActivity : AppCompatActivity() {
             val titleView = TextView(this).apply {
                 text = "$badgeText  ·  ${e.phone}"
                 textSize = 14f
-                setTypeface(typeface, android.graphics.Typeface.BOLD)
+                setTypeface(android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL))
                 setTextColor(ContextCompat.getColor(this@MainActivity, R.color.text))
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
             }
@@ -487,7 +469,7 @@ class MainActivity : AppCompatActivity() {
             val statusView = TextView(this).apply {
                 text = if (e.ok) "OK" else "FAIL"
                 textSize = 11f
-                setTypeface(typeface, android.graphics.Typeface.BOLD)
+                setTypeface(android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL))
                 setPadding(18, 6, 18, 6)
                 setBackgroundResource(
                     if (e.ok) R.drawable.bg_status_pill else R.drawable.bg_status_pill_offline
@@ -525,7 +507,9 @@ class MainActivity : AppCompatActivity() {
 
         binding.editDeviceName.setText(prefs.deviceName)
         binding.switchAutoStart.isChecked = prefs.autoStart
+        val ip = NetworkUtils.localIpv4() ?: "—"
+        val qc = NetworkUtils.quickCode(ip) ?: "—"
         binding.settingsMeta.text =
-            "Version: 1.5.0 (Glass V4)\nDevice ID: ${prefs.deviceId}\nPort: ${Prefs.PORT}\nPaired PCs: ${prefs.sessionTokens().size}"
+            "Version: 1.5.2 (Executive Edition)\nDevice ID: ${prefs.deviceId}\nIP: $ip (Quick Code: $qc)\nPort: ${Prefs.PORT}\nPaired PCs: ${prefs.sessionTokens().size}"
     }
 }

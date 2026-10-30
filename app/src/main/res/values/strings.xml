@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Smouha Call</string>
-    <string name="brand_tag">ds60ashrafamin · Glass V4</string>
+    <string name="brand_tag">ds60ashrafamin · Executive V4</string>
     <string name="channel_name">Call bridge</string>
     <string name="channel_desc">Keeps the LAN call server running</string>
     <string name="notif_title">Smouha Call</string>
@@ -10,9 +10,9 @@
     <string name="stop_bridge">Stop Bridge Server</string>
     <string name="status_running">Online · %1$s:%2$d</string>
     <string name="status_stopped">Bridge Offline</string>
-    <string name="status_ready">✓ Call &amp; Dialer Permission Ready</string>
-    <string name="pair_hint">Tap «⚡ 1-Tap Fast Pair» below, then click «⚡ Auto-Pair Phone» on the PC dashboard (no IP or QR needed!).</string>
-    <string name="pair_connected_hint">Paired with PC ✓ — Bridge stays active on Wi‑Fi. Tap «⚡ 1-Tap Fast Pair» anytime to link another PC.</string>
+    <string name="status_ready">✓ Direct Call Permission Ready</string>
+    <string name="pair_hint">Tap «⚡ 1-Tap Fast Pair» below, then click «⚡ Auto-Pair Phone» on the PC dashboard (or enter Quick Code %1$s on PC for instant 0.1s link).</string>
+    <string name="pair_connected_hint">Paired with PC ✓ — Bridge active on Wi‑Fi (Quick Code: %1$s). Tap «⚡ 1-Tap Fast Pair» anytime to link another PC.</string>
     <string name="refresh_qr">New code</string>
     <string name="copy_payload">Copy JSON</string>
     <string name="grant_call">Grant Direct Call Permission</string>
@@ -33,7 +33,7 @@
     <string name="hide_pair">Hide Manual QR / JSON</string>
     <string name="default_phone_name">ds60-phone1</string>
     <string name="accept_pc_pair">⚡ 1-Tap Fast Pair with PC (2 min)</string>
-    <string name="accept_pc_pair_hint">⚡ Fast Pair Window OPEN — Now click «⚡ Auto-Pair Phone» on the PC extension (no IP needed)!</string>
+    <string name="accept_pc_pair_hint">⚡ Fast Pair Window OPEN — Click «⚡ Auto-Pair Phone» on PC (or type Quick Code %1$s in IP box for instant link)!</string>
     <string name="accept_pc_pair_toast">⚡ Fast Pair active for 2 min — click Auto-Pair on PC!</string>
     <string name="scan_pc_qr">📷 Scan PC QR</string>
     <string name="scan_pc_qr_hint">Point camera at the QR on Smouha Papper → Settings → Phones.</string>
@@ -41,10 +41,8 @@
     <string name="scan_bad">Invalid QR — need SmouhaCall pair code.</string>
     <string name="scan_need_camera">Camera permission required to scan QR</string>
     <string name="battery_status_ok">✓ Battery: Unrestricted — instant background calls active</string>
-    <string name="battery_status_bad">⚠ Battery: Optimized — may delay calls when screen is off</string>
+    <string name="battery_status_bad">⚠ Battery: Optimized — open App Info → Battery → Unrestricted</string>
     <string name="battery_status_unknown">Battery: checking…</string>
-    <string name="battery_allow">Allow Unrestricted Battery</string>
-    <string name="grant_overlay">Allow Background WhatsApp Launch</string>
-    <string name="overlay_ok">✓ Background WhatsApp: Allowed</string>
+    <string name="battery_allow">Open App Battery Settings</string>
     <string name="clear_activity">Clear Log</string>
 </resources>
