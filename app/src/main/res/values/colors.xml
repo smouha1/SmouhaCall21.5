@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Glassy V4 Light Mode (Warm Frosted Glass + Talabat Orange #FF5A00) -->
+    <color name="bg">#D8C8B2</color>
+    <color name="scene_scrim">#26FFF8EE</color>
+    <color name="surface">#ADFFF9F2</color>
+    <color name="surface_strong">#D6FFFCF8</color>
+    <color name="surface_alt">#88FFFDF9</color>
+    <color name="primary">#FF5A00</color>
+    <color name="primary_dark">#E04800</color>
+    <color name="primary_soft">#24FF5A00</color>
+    <color name="text">#181512</color>
+    <color name="muted">#524A42</color>
+    <color name="success">#166534</color>
+    <color name="success_soft">#DCFCE7</color>
+    <color name="success_border">#BBF7D0</color>
+    <color name="danger">#B91C1C</color>
+    <color name="danger_soft">#FEE2E2</color>
+    <color name="warning">#B45309</color>
+    <color name="warning_soft">#FEF3C7</color>
+    <color name="border">#B3FFFFFF</color>
+    <color name="border_subtle">#73FFFFFF</color>
+    <color name="nav_bg">#EBFAF5EE</color>
+</resources>
