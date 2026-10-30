@@ -353,8 +353,7 @@ class MainActivity : AppCompatActivity() {
             }
             val st = if (last.ok) "OK" else "FAIL"
             binding.lastActionText.text =
-                "$kind · ${last.phone} · $st (${fmt.format(Date(last.ts))})
-${last.detail}"
+                "$kind · ${last.phone} · $st (${fmt.format(Date(last.ts))})\n${last.detail}"
             binding.lastActionText.setTextColor(
                 ContextCompat.getColor(this, if (last.ok) R.color.success else R.color.danger)
             )
@@ -527,9 +526,6 @@ ${last.detail}"
         binding.editDeviceName.setText(prefs.deviceName)
         binding.switchAutoStart.isChecked = prefs.autoStart
         binding.settingsMeta.text =
-            "Version: 1.5.0 (Glass V4)
-Device ID: ${prefs.deviceId}
-Port: ${Prefs.PORT}
-Paired PCs: ${prefs.sessionTokens().size}"
+            "Version: 1.5.0 (Glass V4)\nDevice ID: ${prefs.deviceId}\nPort: ${Prefs.PORT}\nPaired PCs: ${prefs.sessionTokens().size}"
     }
 }

@@ -24,7 +24,7 @@ object CallExecutor {
         if (s.startsWith("0") && !s.startsWith("00")) {
             s = "+20" + s.substring(1)
         }
-        if (!s.startsWith("+") && s.matches(Regex("^1[0125]\d{8}$"))) {
+        if (!s.startsWith("+") && s.matches(Regex("^1[0125]\\d{8}$"))) {
             s = "+20$s"
         }
         return s
